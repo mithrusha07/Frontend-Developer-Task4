@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Advanced To-Do List</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  body {
+    font-family: 'Poppins', sans-serif;
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    background: url('https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=1950&q=80') no-repeat center center/cover;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 20px;
+    transition: background 0.3s, color 0.3s;
+    color: #fff;
+  }
+
+  body.light {
+    background: url('https://images.unsplash.com/photo-1496681859237-6039cd585c4e?auto=format&fit=crop&w=1950&q=80') no-repeat center center/cover;
+    color: #222;
+  }
+
+  .container {
+    width: 100%;
+    max-width: 550px;
+    background: rgba(255,255,255,0.05);
+    backdrop-filter: blur(10px);
+    padding: 30px;
+    border-radius: 20px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+  }
+
+  h1 {
+    text-align: center;
+    color: #ff79c6;
+    margin-bottom: 5px;
+  }
+
+  .date-display {
+    text-align: center;
+    margin-bottom: 20px;
+    font-weight: 500;
+  }
+
+  .theme-toggle {
+    display: block;
+    margin: 0 auto 20px auto;
+    padding: 8px 20px;
+    border: none;
+    border-radius: 20px;
+    background: #ff79c6;
+    color: #fff;
+    cursor: pointer;
+    transition: 0.3s;
+  }
+
+  .theme-toggle:hover { transform: scale(1.05); }
+
+  .task-input, .task-date, .priority-select, .search-input {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 12px;
+    border-radius: 12px;
+    border: none;
+    outline: none;
+    font-size: 1rem;
+    background: rgba(255,255,255,0.1);
+    color: #fff;
+  }
+
+  body.light .task-input,
+  body.light .task-date,
+  body.light .priority-select,
+  body.light .search-input {
+    background: rgba(255,255,255,0.2);
+    color: #222;
+  }
+
+  .add-btn {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 12px;
+    background: #ff79c6;
+    color: #fff;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.3s;
+  }
+
+  .add-btn:hover { transform: scale(1.05); background: #ff4585; }
+
+  ul {
+    list-style: none;
+    padding: 0;
+    margin: 20px 0 0 0;
+  }
+
+  li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 15px;
+    margin-bottom: 10px;
+    border-radius: 12px;
+    background: rgba(255,255,255,0.1);
+    transition: 0.3s;
+    cursor: grab;
+  }
+
+  body.light li {
+    background: rgba(255,255,255,0.15);
+  }
+
+  li.completed {
+    opacity: 0.6;
+    text-decoration: line-through;
+  }
+
+  .task-left {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .priority-low { color: #00ff00; }
+  .priority-medium { color: #ffff00; }
+  .priority-high { color: #ff4b2b; }
+
+  .task-btns button {
+    margin-left: 8px;
+    border: none;
+    padding: 6px 10px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: 0.2s;
+    color: #fff;
+    background: #ff416c;
+  }
+
+  .task-btns button:hover { background: #ff79c6; }
+
+  .search-input {
+    margin-top: 12px;
+  }
+
+  footer {
+    text-align: center;
+    margin-top: 20px;
+    color: #ccc;
+  }
+
+  @media(max-width:600px){
+    li { flex-direction: column; align-items:flex-start; }
+    .task-btns { margin-top: 8px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <h1>Alfido Tech — Pro To-Do</h1>
+  <div class="date-display" id="dateDisplay"></div>
+  <button class="theme-toggle" id="themeToggle">Toggle Dark/Light</button>
+
+  <input type="text" id="taskInput" class="task-input" placeholder="Task description">
+  <input type="date" id="taskDate" class="task-date">
+  <select id="prioritySelect" class="priority-select">
+    <option value="Low">Priority: Low</option>
+    <option value="Medium">Priority: Medium</option>
+    <option value="High">Priority: High</option>
+  </select>
+  <button class="add-btn" id="addBtn">+ Add Task</button>
+
+  <input type="text" id="searchInput" class="search-input" placeholder="🔎 Search tasks...">
+
+  <ul id="taskList"></ul>
+</div>
+
+<footer>© 2025 Alfido Tech | Professional To-Do</footer>
+
+<script>
+  // Show today's date
+  const dateDisplay = document.getElementById('dateDisplay');
+  const today = new Date();
+  const dd = String(today.getDate()).padStart(2,'0');
+  const mm = String(today.getMonth()+1).padStart(2,'0');
+  const yyyy = today.getFullYear();
+  dateDisplay.textContent = `${dd}-${mm}-${yyyy}`;
+
+  // Dark/Light toggle
+  const themeToggle = document.getElementById('themeToggle');
+  themeToggle.addEventListener('click', () => {
+    document.body.classList.toggle('light');
+  });
+
+  // Tasks
+  const taskInput = document.getElementById('taskInput');
+  const taskDate = document.getElementById('taskDate');
+  const prioritySelect = document.getElementById('prioritySelect');
+  const addBtn = document.getElementById('addBtn');
+  const taskList = document.getElementById('taskList');
+  const searchInput = document.getElementById('searchInput');
+
+  // Load tasks from localStorage
+  let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+  function saveTasks() { localStorage.setItem('tasks', JSON.stringify(tasks)); }
+
+  function createTaskElement(task){
+    const li = document.createElement('li');
+    li.setAttribute('draggable','true');
+    if(task.completed) li.classList.add('completed');
+    li.innerHTML = `<div class="task-left">
+      <span>${task.text}</span>
+      <small>${task.date ? task.date : ''}</small>
+      <small class="${task.priority==='Low'?'priority-low':task.priority==='Medium'?'priority-medium':'priority-high'}">${task.priority}</small>
+    </div>
+    <div class="task-btns">
+      <button class="completeBtn">✔</button>
+      <button class="deleteBtn">✖</button>
+    </div>`;
+    // Complete and delete
+    li.querySelector('.completeBtn').addEventListener('click', () => {
+      li.classList.toggle('completed');
+      task.completed = !task.completed;
+      saveTasks();
+    });
+    li.querySelector('.deleteBtn').addEventListener('click', () => {
+      li.remove();
+      tasks = tasks.filter(t => t !== task);
+      saveTasks();
+    });
+    return li;
+  }
+
+  function renderTasks() {
+    taskList.innerHTML = '';
+    tasks.forEach(task => taskList.appendChild(createTaskElement(task)));
+  }
+
+  addBtn.addEventListener('click', () => {
+    const text = taskInput.value.trim();
+    if(!text) return;
+    const task = {text, date: taskDate.value, priority: prioritySelect.value, completed:false};
+    tasks.push(task);
+    saveTasks();
+    renderTasks();
+    taskInput.value=''; taskDate.value='';
+  });
+
+  taskInput.addEventListener('keypress', e => { if(e.key==='Enter') addBtn.click(); });
+
+  searchInput.addEventListener('input', ()=>{
+    const filter = searchInput.value.toLowerCase();
+    Array.from(taskList.children).forEach(li => {
+      const text = li.querySelector('span').textContent.toLowerCase();
+      li.style.display = text.includes(filter) ? '' : 'none';
+    });
+  });
+
+  renderTasks();
+
+  // Drag & Drop
+  let dragSrcEl = null;
+  function handleDragStart(e) { dragSrcEl = this; this.style.opacity = '0.5'; }
+  function handleDragEnd(e) { this.style.opacity = ''; }
+  function handleDragOver(e) { e.preventDefault(); }
+  function handleDrop(e){
+    e.stopPropagation();
+    if(dragSrcEl !== this){
+      let srcIndex = Array.from(taskList.children).indexOf(dragSrcEl);
+      let destIndex = Array.from(taskList.children).indexOf(this);
+      tasks.splice(destIndex,0,tasks.splice(srcIndex,1)[0]);
+      saveTasks();
+      renderTasks();
+    }
+  }
+  taskList.addEventListener('dragover', e => e.preventDefault());
+  taskList.addEventListener('drop', handleDrop);
+</script>
+</body>
+</html>
